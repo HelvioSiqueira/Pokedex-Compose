@@ -22,7 +22,6 @@ object AppModule {
         api: PokeApi
     ) = PokemonRepository(api)
 
-
     @Singleton
     @Provides
     fun providePokeApi(): PokeApi {
