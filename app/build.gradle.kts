@@ -53,6 +53,8 @@ android {
 
 dependencies {
 
+    implementation ("androidx.palette:palette-ktx:1.0.0")
+
     // Coroutines
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
@@ -62,8 +64,7 @@ dependencies {
     implementation ("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
 
     // Coil
-    implementation ("io.coil-kt:coil:2.4.0")
-    implementation ("com.google.accompanist:accompanist-coil:0.7.0")
+    implementation("io.coil-kt:coil-compose:2.4.0")
 
     //Dagger - Hilt
     implementation ("com.google.dagger:hilt-android:2.45")
