@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -53,6 +55,7 @@ import coil.request.ImageRequest
 import com.helvio.pokedexcompose.R
 import com.helvio.pokedexcompose.data.models.PokedexListEntry
 import com.helvio.pokedexcompose.ui.theme.RobotoCondensed
+import timber.log.Timber
 
 @Composable
 fun PokemonListScreen(
@@ -131,22 +134,29 @@ fun PokemonList(
     navController: NavController,
     viewModel: PokemonListViewModel = hiltViewModel()
 ) {
+
+    val pokemonAdded by remember { mutableStateOf(mutableListOf<Int>()) }
     val pokemonList by remember { viewModel.pokemonList }
     val endReached by remember { viewModel.endReached }
     val loadError by remember { viewModel.loadError }
     val isLoading by remember { viewModel.isLoading }
 
-    LazyColumn(contentPadding = PaddingValues(16.dp)) {
-        val itemCount = if(pokemonList.size % 2 == 0) {
-            pokemonList.size / 2
-        } else {
-            pokemonList.size / 2 + 1
-        }
-        items(itemCount) {
-            if(it >= itemCount - 1 && !endReached) {
-                viewModel.loadPokemonPaginated()
+    LazyVerticalStaggeredGrid(
+        contentPadding = PaddingValues(16.dp),
+        columns = StaggeredGridCells.Fixed(2)
+    ) {
+
+        items(pokemonList.size) { item ->
+            PokedexEntry(entry = pokemonList[item], navController = navController)
+
+            if (item !in pokemonAdded) {
+                pokemonAdded.add(item)
+                if (item >= pokemonList.size - 1 && !endReached) {
+                    Timber.d("Pediu pokemon!")
+                    viewModel.loadPokemonPaginated()
+                    Timber.d(pokemonAdded.toString())
+                }
             }
-            PokedexRow(rowIndex = it, entries = pokemonList, navController = navController)
         }
     }
 
@@ -154,10 +164,10 @@ fun PokemonList(
         contentAlignment = Center,
         modifier = Modifier.fillMaxSize()
     ) {
-        if(isLoading) {
+        if (isLoading) {
             CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         }
-        if(loadError.isNotEmpty()) {
+        if (loadError.isNotEmpty()) {
             RetrySection(error = loadError) {
                 viewModel.loadPokemonPaginated()
             }
@@ -181,6 +191,7 @@ fun PokedexEntry(
     Box(
         contentAlignment = Center,
         modifier = Modifier
+            .padding(7.dp)
             .shadow(5.dp, RoundedCornerShape(10.dp))
             .clip(
                 RoundedCornerShape(10.dp)
@@ -230,7 +241,7 @@ fun PokedexRow(
                 modifier = Modifier.weight(1f)
             )
             Spacer(modifier = Modifier.width(16.dp))
-            if(entries.size >= rowIndex * 2 + 2) {
+            if (entries.size >= rowIndex * 2 + 2) {
                 PokedexEntry(
                     entry = entries[rowIndex * 2 + 1],
                     navController = navController,
