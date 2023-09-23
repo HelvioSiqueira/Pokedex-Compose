@@ -60,6 +60,7 @@ import timber.log.Timber
 @Composable
 fun PokemonListScreen(
     navController: NavController,
+    viewModel: PokemonListViewModel = hiltViewModel()
 ) {
     Surface(
         color = MaterialTheme.colorScheme.background,
@@ -79,7 +80,9 @@ fun PokemonListScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
-            )
+            ){
+                viewModel.searchPokemonList(it)
+            }
             Spacer(modifier = Modifier.height(16.dp))
             PokemonList(navController = navController)
         }
@@ -115,7 +118,7 @@ fun SearchBar(
                 .background(Color.White, CircleShape)
                 .padding(horizontal = 20.dp, vertical = 12.dp)
                 .onFocusChanged {
-                    isHintDisplayed = !it.hasFocus
+                    isHintDisplayed = !it.hasFocus && text.isNotEmpty()
                 }
         )
 
@@ -135,11 +138,12 @@ fun PokemonList(
     viewModel: PokemonListViewModel = hiltViewModel()
 ) {
 
-    val pokemonAdded by remember { mutableStateOf(mutableListOf<Int>()) }
     val pokemonList by remember { viewModel.pokemonList }
     val endReached by remember { viewModel.endReached }
     val loadError by remember { viewModel.loadError }
     val isLoading by remember { viewModel.isLoading }
+    val isSearching by remember { viewModel.isSearching }
+
 
     LazyVerticalStaggeredGrid(
         contentPadding = PaddingValues(16.dp),
@@ -149,13 +153,9 @@ fun PokemonList(
         items(pokemonList.size) { item ->
             PokedexEntry(entry = pokemonList[item], navController = navController)
 
-            if (item !in pokemonAdded) {
-                pokemonAdded.add(item)
-                if (item >= pokemonList.size - 1 && !endReached) {
-                    Timber.d("Pediu pokemon!")
-                    viewModel.loadPokemonPaginated()
-                    Timber.d(pokemonAdded.toString())
-                }
+            if (item >= pokemonList.size - 1 && !endReached && !isLoading && !isSearching) {
+                Timber.d("Pediu pokemon!")
+                viewModel.loadPokemonPaginated()
             }
         }
     }
